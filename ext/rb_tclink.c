@@ -1,8 +1,8 @@
 /* ruby_tclink.c - Library code for the TCLink client API.
  *
- * TCLink Copyright (c) 2007 TrustCommerce.
+ * TCLink Copyright (c) 2013 TrustCommerce.
  * http://www.trustcommerce.com
- * developer@trustcommerce.com
+ * techsupport@trustcommerce.com
  * (949) 387-3747
  *
  * This library is free software; you can redistribute it and/or

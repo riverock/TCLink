@@ -1,8 +1,8 @@
 /* tclink.h - Header file for TCLink library.
  *
- * TCLink Copyright (c) 2007 TrustCommerce.
+ * TCLink Copyright (c) 2013 TrustCommerce.
  * http://www.trustcommerce.com
- * developer@trustcommerce.com
+ * techsupport@trustcommerce.com
  * (949) 387-3747
  *
  * This library is free software; you can redistribute it and/or
@@ -64,6 +64,20 @@ void TCLinkDestroy(TCLinkHandle handle);
 
 /* Store version string into buf.  Returns a pointer to buf. */
 char *TCLinkGetVersion(char *buf);
+
+
+/* The API methods below are subject to change. */
+
+/* Enables (1) or Disables (0) the full SSL close_notify sequence.  By default, this is set to 1.*/
+int TCLinkSetFullClose(TCLinkHandle handle, int full_ssl_close);
+
+/* Provides a method, before the first send call is initiated, of loading a set of trusted CA certificates (PEM format). */
+void TCLinkSetTrustedCABundle(TCLinkHandle handle, const char *str, int len);
+
+/* Provides a method, once the handshake is completed, a means to verify the contents of that certificate independently.  
+ * Note that the certificate may not be set depending on the negotation type (in which case the pointer would be NULL)
+ */
+void TCLinkSetValidateCallback(TCLinkHandle handle, int (*validate_cert)(int, void *));
 
 #endif
 
