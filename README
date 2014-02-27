@@ -3,13 +3,13 @@ like the ones embedded in TCLink. It may be unlawful to download TCLink
 in these countries.
 
 
-                                TCLink v3.4.4
+                                TCLink v4.0.1
                             Ruby Implementation
-                       copyright (C) TrustCommerce 2007
+                       copyright (C) TrustCommerce 2010
                          http://www.trustcommerce.com
-                         developer@trustcommerce.com
+                         techsupport@trustcommerce.com
 
-                              July 13, 2007
+                               July 31, 2013
 
 I. DESCRIPTION
 
@@ -28,17 +28,17 @@ for details.
 
 III. REQUIREMENTS
 
-  You need to have the OpenSSL development libraries installed.  Versions
-prior to 0.9.6 may work, but are not supported; it is recommended you use
-the most recent version.
+  You need to have the OpenSSL development libraries installed.  It
+is recommended that you use the latest version provided by the vendor
+for PCI reasons.
 
   Besides the normal Ruby install, you'll need the ruby-devel package,
 which contains files needed for building Ruby extensions.
- 
+
 IV. INSTALLATION
 
   [sudo] gem install tclink
-  
+
 V. TESTING
 
     ruby tctest.rb
