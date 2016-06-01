@@ -3,10 +3,11 @@ require 'rubygems' unless defined?(Gem)
 spec=Gem::Specification.new do |s|
   s.name = 'tclink'
 #note: extconf takes version out of this file
-  s.version = '4.0.1'
+  s.version = '4.2.0'
   s.summary = "TCLink Trust Commerce link"
   s.description = "Trust Commerce connectivity layer"
   s.homepage = "http://trustcommerce.com"
+  s.license = "LGPL-2.1"
   s.require_path = 'ext'
   s.required_ruby_version = '>=1.8.7'
   # s.has_rdoc = false
@@ -14,10 +15,11 @@ spec=Gem::Specification.new do |s|
   s.email = "developer@trustcommerce.com"
   s.extensions = ["ext/extconf.rb"]
 
-  s.files = %w[
+  s.files = Dir['ext/*.c'] + Dir['ext/*.h'] + Dir['ext/extconf.rb'] + %w[
     LICENSE README doc/TCDevGuide.html doc/TCDevGuide.txt
-    ext/depend ext/extconf.rb ext/tclink.h ext/tclink.c ext/rb_tclink.c
-    setup.rb tctest.rb tclink.gemspec]
+    test/tclink_test.rb
+    Rakefile
+    tclink.gemspec]
   s.files
 end
 

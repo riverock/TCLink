@@ -41,6 +41,7 @@
 #include <unistd.h>
 #endif
 
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -62,6 +63,7 @@
 #endif
 
 #define DEFAULT_HOST    "pgw1.trustcommerce.com"
+
 /* changed from forty second to one hundred second to reflect more complicated transaction processing logic */
 #define TIMEOUT         100     /* seconds */
 #define TC_BUFF_MAX     16000
@@ -92,7 +94,8 @@ typedef struct _TCLinkCon
 	int sd;
 
 	/* SSL encryption */
-	SSL_METHOD *meth;
+	const SSL_METHOD *meth;
+	long ctx_options;
 	SSL_CTX *ctx;
 	SSL *ssl;
 
@@ -120,6 +123,14 @@ typedef struct _TCLinkCon
 static int number(int min, int max)
 {
 	return (rand() % (max - min + 1)) + min;
+}
+
+/* Check if path points to a regular file */
+int is_regular_file(const char* path)
+{
+	struct stat st;
+	stat(path, &st);
+	return S_ISREG(st.st_mode);
 }
 
 /* Safe string copy and append functions. */
@@ -341,7 +352,6 @@ static int FinishConnection(TCLinkCon *c, int sd)
 	/* verify that server certificate is authentic */
 	server_cert = SSL_get_peer_certificate(c->ssl);
 	if (!server_cert) {
-		X509_free(server_cert);
 		return 0;
 	}
 	if (c->validate_cert && c->validate_cert(0, server_cert) != 0)
@@ -449,7 +459,7 @@ void do_SSL_randomize()
 static int Connect(TCLinkCon *c, int host_hash)
 {
 	struct hostent default_he;
-	char *addr_list[5]; int addr[4];
+	char *addr_list[3]; int addr[2];
 	struct hostent *he;
 	unsigned int **gw;
 
@@ -468,15 +478,11 @@ static int Connect(TCLinkCon *c, int host_hash)
 	srand(time(0));
 
 	/* These are used as BACKUP ONLY if the DNS if offline. */
-	addr[0] = inet_addr("207.38.46.31");
-	addr[1] = inet_addr("207.38.46.32");
-	addr[2] = inet_addr("208.42.227.136");
-	addr[3] = inet_addr("208.42.227.137");
+	addr[0] = inet_addr("207.38.46.42");
+	addr[1] = inet_addr("208.42.227.151");
 	addr_list[0] = (char *)&addr[0];
 	addr_list[1] = (char *)&addr[1];
-	addr_list[2] = (char *)&addr[2];
-	addr_list[3] = (char *)&addr[3];
-	addr_list[4] = 0;
+	addr_list[2] = 0;
 	default_he.h_addr_list = addr_list;
 
 	/* determine IP addresses of gateway */
@@ -518,18 +524,33 @@ static int Connect(TCLinkCon *c, int host_hash)
 	{
 		do_SSL_randomize();        /* handle systems without /dev/urandom */
 		SSLeay_add_ssl_algorithms();
-		c->meth = TLSv1_client_method();
+		c->meth = SSLv23_client_method();
+		c->ctx_options = SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3;	// Disable all known SSL versions
 	}
 
 	if (!c->ctx)
 	{
-		extern int SSL_CTX_load_verify_locations_mem(SSL_CTX*, const char *);
 		int val;
 
 		c->ctx = SSL_CTX_new(c->meth);
 		if (!c->ctx) return 0;
-		/* do verifications from our trusted string */
-		val = SSL_CTX_load_verify_locations_mem(c->ctx, c->trusted_ca_pem);
+		/* set options */
+		if (c->ctx_options)
+			SSL_CTX_set_options(c->ctx, c->ctx_options);
+
+		if (!c->trusted_ca_pem)
+		{
+			int is_file = is_regular_file(TCLINK_CA_PATH);
+			val = SSL_CTX_load_verify_locations(c->ctx, is_file?TCLINK_CA_PATH:NULL, is_file?NULL:TCLINK_CA_PATH);
+		}
+		else
+		{
+			extern int SSL_CTX_load_verify_locations_mem(SSL_CTX*, const char *);
+			val = SSL_CTX_load_verify_locations_mem(c->ctx, c->trusted_ca_pem);
+		}
+
+		if (!val) return 0;	// failed to populate cert store
+
 		/* turn on certificate chain validation */
 		SSL_CTX_set_verify(c->ctx, SSL_VERIFY_PEER, NULL);
 	}
@@ -582,21 +603,25 @@ static int Connect(TCLinkCon *c, int host_hash)
 				if (sd[num_sd] >= 0)
 					num_sd++;
 			}
-
-			/* scan all current sockets and see if we've made a successful connection
-			 * somewhere.  note that this also includes SSL and all that sort of fun,
-			 * so once it returns success, we're all done. */
-			if (num_sd > 0)
-				if (CheckConnection(c, sd, num_sd) >= 0)
-				{
-					/* Success: close all other file handles and return */
-					for (i = 0; i < num_sd; i++)
-						if (sd[i] >= 0 && sd[i] != c->sd)
-							close(sd[i]);
-
-					return 1;
-				}
 		}
+
+		/* scan all current sockets and see if we've made a successful connection
+		 * somewhere.  note that this also includes SSL and all that sort of fun,
+		 * so once it returns success, we're all done. */
+		if (num_sd > 0)
+		{
+			if (CheckConnection(c, sd, num_sd) >= 0)
+			{
+				/* Success: close all other file handles and return */
+				for (i = 0; i < num_sd; i++)
+					if (sd[i] >= 0 && sd[i] != c->sd)
+						close(sd[i]);
+
+				return 1;
+			}
+		}
+
+		usleep(1000);	// sleep for 1 millisecond
 	}
 
 	return 0;
@@ -635,8 +660,7 @@ static int ReadLine(TCLinkCon *c, char *buffer, char *destbuf)
 			return strlen(destbuf);
 		}
 		else
-		{
-			
+		{	
 			if (c->is_error == 1)
 				return -1;
 
@@ -746,7 +770,6 @@ static void stuff_string(char *buf, int *len, int size, const char *add)
 TCLinkHandle TCLinkCreate()
 {
 	extern int TCLinkDefaultValidate(int, void *);
-	extern char * tclink_ca_bundle;
 
 	TCLinkCon *c = (TCLinkCon *)malloc(sizeof(TCLinkCon));
 
@@ -767,7 +790,7 @@ TCLinkHandle TCLinkCreate()
 	c->start_time = 0;
 	c->dns = -1;
 
-	c->trusted_ca_pem = strdup(tclink_ca_bundle);
+	c->trusted_ca_pem = NULL;
 	c->validate_cert = TCLinkDefaultValidate;
 	c->full_ssl_close = 1;
 
@@ -781,20 +804,19 @@ int TCLinkSetFullClose(TCLinkHandle handle, int full_ssl_close)
 	c->full_ssl_close = full_ssl_close ? 1 : 0;
 	return swap;
 }
+
 void TCLinkSetTrustedCABundle(TCLinkHandle handle, const char *str, int len)
 {	
-	extern char * tclink_ca_bundle;
 	TCLinkCon *c = (TCLinkCon *)handle;
+	
+	if (c->trusted_ca_pem)
+			free(c->trusted_ca_pem);
+	
 	if (str == NULL)
 	{
-		if (c->trusted_ca_pem)
-			free(c->trusted_ca_pem);
-		c->trusted_ca_pem = strdup(tclink_ca_bundle);
+		c->trusted_ca_pem = NULL;
 		return;
 	}
-
-	if (c->trusted_ca_pem)
-		free(c->trusted_ca_pem);	
 	
 	c->trusted_ca_pem = malloc(len+1);
 	strncpy(c->trusted_ca_pem,str,len);
