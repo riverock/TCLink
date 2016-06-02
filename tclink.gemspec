@@ -3,10 +3,10 @@ require 'rubygems' unless defined?(Gem)
 spec=Gem::Specification.new do |s|
   s.name = 'tclink'
 #note: extconf takes version out of this file
-  s.version = '4.2.0'
+  s.version = '4.2.1'
   s.summary = "TCLink Trust Commerce link"
   s.description = "Trust Commerce connectivity layer"
-  s.homepage = "http://trustcommerce.com"
+  s.homepage = "https://github.com/peejaybee/TCLink"
   s.license = "LGPL-2.1"
   s.require_path = 'ext'
   s.required_ruby_version = '>=1.8.7'
