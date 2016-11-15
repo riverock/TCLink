@@ -11,7 +11,7 @@ in these countries.
 
                                June 1, 2016
 
-I. DESCRIPTION
+# Description
 
   TCLink is a thin client library to allow your e-commerce servers to
 connect to the TrustCommerce payment gateway easily and consistently.
@@ -20,40 +20,51 @@ well-documented in the Web Developer's Guide, so please consult it for
 any questions you may have about the protocol syntax itself.
 
 
-II. LICENSE
+## License
 
   TCLink for Ruby is released under the GNU LGPL.  Please read LICENSE
 for details.
 
 
-III. REQUIREMENTS
+## Requirements
 
-  You need to have the OpenSSL development libraries installed.  It
+  You need to have the OpenSSL development libraries installed. (Note that OS X El Capitan and later do not ship with these libraries.) It
 is recommended that you use the latest version provided by the vendor
 for PCI reasons.
 
   Besides the normal Ruby install, you'll need the ruby-devel package,
 which contains files needed for building Ruby extensions.
 
-IV. INSTALLATION
+## Installation
 
-  [sudo] gem install tclink
+  ```[sudo] gem install tclink```
 
-  If you have difficulty on OS X El Capitan or later, you may need to set SSL_CERT_PATH to point to a valid SSL certificate.
+### OS X El Capitan and Later
 
-V. TESTING
+  If you have difficulty on OS X El Capitan or later, you may need to
+  - Install OpenSSL through Homebrew (see https://solitum.net/openssl-os-x-el-capitan-and-brew/)
+  - Link to the OpenSSL libraries (see https://solitum.net/openssl-os-x-el-capitan-and-brew/)
+    ```
+    $ cd /usr/local/include
+    $ ln -s ../opt/openssl/include/openssl .
+    ```
+  - Set SSL_CERT_PATH to point to a valid SSL certificate at install time:
+  ```SSL_CERT_PATH=/usr/local/etc/openssl/cert.pem bundle install```
 
-    rake test
+
+## Testing
+
+    ```rake test```
 
   This script will run a test transaction and print the results.
 
-VI. USAGE
+## Usage
 
   The tctest.rb script shows a simple example of running transactions
 through the TCLink API.  For further information, please consult the TC
 Developer's Guide, located in the doc subdirectory.
 
-VII. NOTE
+## NOTE
 
 I forked this from a fork of the original repository whose creator writes:
 
@@ -63,9 +74,6 @@ Trust Commerce and have not modified any of the C code.
 If you have trouble building this, you can download a tarball of the source
 from Trust Commerce's vault.
 "
-
---Keenan Brock
-keenan@thebrocks.net
 
 --Phillip Birmingham
 phillip.birmingham@fidelitylife.com
