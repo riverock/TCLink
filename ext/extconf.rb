@@ -10,16 +10,18 @@ File.delete 'config.h' if File.exist? 'config.h'
 
 ssldir = (`openssl version -d`.chomp.split(/:/)[1]).gsub(' ', '').gsub(/"/, '')
 certdir = "#{ssldir}/certs"
-certpath = nil
+certpath = ENV['SSL_CERT_PATH']
 
-filenames = %w(ca-bundle.crt ca-certificates.crt ca-bundle.trust.crt tls-ca-bundle.pem cert.pem)
-dirs = [ssldir, certdir]
+if certpath.nil?
+  filenames = %w(ca-bundle.crt ca-certificates.crt ca-bundle.trust.crt tls-ca-bundle.pem cert.pem)
+  dirs = [ssldir, certdir]
 
-filenames.each do |name|
-  dirs.each do |dir|
-    path = "#{dir}/#{name}"
-    if File.exist?(path) & certpath.nil?
-      certpath = path
+  filenames.each do |name|
+    dirs.each do |dir|
+      path = "#{dir}/#{name}"
+      if File.exist?(path) & certpath.nil?
+        certpath = path
+      end
     end
   end
 end

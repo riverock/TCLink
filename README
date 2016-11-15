@@ -39,6 +39,8 @@ IV. INSTALLATION
 
   [sudo] gem install tclink
 
+  If you have difficulty on OS X El Capitan or later, you may need to set SSL_CERT_PATH to point to a valid SSL certificate.
+
 V. TESTING
 
     rake test
