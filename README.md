@@ -50,7 +50,7 @@ which contains files needed for building Ruby extensions.
     ```
   - Set SSL_CERT_PATH to point to a valid SSL certificate at install time:
   ```SSL_CERT_PATH=/usr/local/etc/openssl/cert.pem bundle install```
-
+    - You may need to export the certs from the OS X keystore. openssl-osx-ca makes this easy and is available on homebrew
 
 ## Testing
 
