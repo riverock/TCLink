@@ -48,13 +48,13 @@ which contains files needed for building Ruby extensions.
     $ cd /usr/local/include
     $ ln -s ../opt/openssl/include/openssl .
     ```
-  - Set SSL_CERT_PATH to point to a valid SSL certificate at install time:
-  ```SSL_CERT_PATH=/usr/local/etc/openssl/cert.pem bundle install```
-    - You may need to export the certs from the OS X keystore. openssl-osx-ca makes this easy and is available on homebrew
+  - Set SSL_CERT_PATH to point to a valid SSL certificate at install time (You may need to export the certs from the OS X keystore. openssl-osx-ca makes this easy and is available on homebrew):
+  ```SSL_CERT_PATH=/usr/local/etc/openssl/cert.pem gem install tclink```
+
 
 ## Testing
 
-    ```rake test```
+```rake test```
 
   This script will run a test transaction and print the results.
 
