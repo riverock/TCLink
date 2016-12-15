@@ -52,4 +52,5 @@ end
 
 have_library("crypto", "CRYPTO_lock")
 have_library("ssl", "SSL_connect")
+find_header('openssl/bio.h', '/usr/local/opt/openssl/include')
 create_makefile("tclink")
